@@ -11,7 +11,7 @@ August4–8, 2019, Anchorage, AK, USA.ACM, New York, NY, USA, 10 pages. https://
 
 import numpy as np
 np.random.seed(42)
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 tf.set_random_seed(42)
 sess = tf.Session()
 
@@ -34,6 +34,7 @@ import time
 
 MAX_INT = np.iinfo(np.int32).max
 data_format = 0
+ref = K.variable(np.random.normal(loc = 0., scale= 1.0, size = 5000) , dtype='float32')
 
 def dev_network_d(input_shape):
     '''
@@ -74,7 +75,9 @@ def deviation_loss(y_true, y_pred):
     '''    
     confidence_margin = 5.     
     ## size=5000 is the setting of l in algorithm 1 in the paper
-    ref = K.variable(np.random.normal(loc = 0., scale= 1.0, size = 5000) , dtype='float32')
+    y_pred = K.cast(y_pred, dtype=tf.float32)
+    y_true = K.cast(y_true, dtype=tf.float32)
+
     dev = (y_pred - K.mean(ref)) / K.std(ref)
     inlier_loss = K.abs(dev) 
     outlier_loss = K.abs(K.maximum(confidence_margin - dev, 0.))
